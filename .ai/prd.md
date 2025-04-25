@@ -11,32 +11,51 @@ Users, especially beginners and intermediates, face difficulties in creating tra
    - Registration using an email address and password.
    - Login, allowing secure access to saved data and plans.
 
-2. Expanded User Profile
-   - A form where the user provides personal data (age, height, weight, gender, activity level).
-   - Specification of training goals (muscle building, reduction, strength increase, fitness improvement).
-   - Selection of experience level (beginner, intermediate, advanced).
-   - Information about available equipment (home gym, professional gym, dumbbells, no equipment).
-   - Optionally: entering health limitations (knee problems, back issues, other injuries).
+2. User Profile
+   - A form where the user provides long-term personal data:
+     - Age, sex, height, weight
+     - Training experience
+     - Health limitations/injuries
+   - Default generation preferences:
+     - Primary training goal (muscle building, reduction, strength increase, fitness improvement)
+     - Available equipment (home gym, professional gym, dumbbells, no equipment)
+     - Preferred training frequency (days per week)
+     - Preferred session length
+   - Profile data exposed as an Open-Host Service that can be queried by other contexts.
+   - No profile snapshots stored in MVP.
 
-3. Exercise Database
-   - A predefined, static database of exercises covering several dozen of the most popular exercises.
+3. Exercise Library
+   - A predefined, static catalog of exercises covering several dozen of the most popular exercises.
    - Each exercise includes a name, a brief description of the execution technique, metadata (muscle groups, required equipment, health limitations), and possible tips.
-   - The exercise database is static – there is no possibility for users or an admin panel to edit it.
+   - Static contents - no possibility for users or an admin panel to edit it in the MVP.
+   - No direct linkage to training rules yet.
 
-4. Generating a Training Plan
-   - A form generating a plan based on profile data, the choice of the number of training days (from 1 to 7), and session length (from 30 minutes to 2+ hours).
-   - Utilizing predefined rules regarding the number of sets, repetitions, split schemes, and AI mechanisms to select exercises and suggest progression (e.g., "increase by 1 kg every week" or "add 1-2 repetitions").
+4. Training Rules
+   - A set of predefined rules for generating training plans.
+   - Rules include guidelines for sets, repetitions, rest periods, and exercise selection.
+   - Static and generic rule logic for the MVP.
+   - No direct linkage to specific exercises or exercise categories yet.
 
-5. Modification and Acceptance of the Plan
+5. Generating a Training Plan
+   - A form generating a plan based on profile data and generation parameters
+   - Utilizing predefined training rules.
+   - Creating plan based on exercise library.
+   - Plans go through lifecycle states: draft (initially generated), accepted (approved by user), or rejected (discarded by user).
+   - Rejected plans will not be deleted from the system, but saved with rejection reason and not shown on the users plan list.
+
+6. Modification and Acceptance of the Plan
    - The user can edit the generated plan – adding or removing exercises, changing the number of sets, repetitions, and weights.
    - Ability to add personal notes and save the final version of the plan.
    - The accepted plan is assigned to the account and is available for later editing.
+   - The system tracks plan acceptance status for auto-generated plans.
 
-6. Managing Training Plans
-   - The user can have multiple training plans without a clear distinction of which plan is "active."
+7. Managing Training Plans
+   - The user can have multiple training plans (up to 10 per user) without a clear distinction of which plan is "active."
    - No versioning mechanism – each edit overwrites the previous version.
+   - No events emitted for plan edit/delete operations.
+   - Lifecycle states (active, deleted) is internal and indepentend from auto-generated plans.
 
-7. Additional Requirements
+8. Additional Requirements
    - A reminder message for the user about the need to consult a doctor in case of health doubts.
    - Simple data validation (minimum and maximum values) on both the front-end and back-end.
    - Testing mechanisms – both manual and automated.
@@ -49,6 +68,10 @@ In the MVP, the following functionalities are excluded:
 - Sending and analyzing photos or videos (verification of exercise technique by AI).
 - Detailed medical warnings and recommendations, beyond simple descriptions.
 - Social functionalities (sharing plans, comments).
+- Plan versioning and history tracking.
+- Coach roles and permissions.
+- Integration between Training Rules and specific exercise categories.
+- Profile snapshots or historical profile data.
 
 Technological boundaries (choice of frameworks, development schedule) and the scope of tests remain to be determined in subsequent phases of the project.
 
@@ -73,19 +96,20 @@ Technological boundaries (choice of frameworks, development schedule) and the sc
 
 ### US-003
 - Title: Completing the User Profile
-- Description: As a user, I want to complete my profile with personal data (age, height, weight, gender, activity level), training goals, experience level, equipment information, and any health limitations so that the training plan is tailored to my needs.
+- Description: As a user, I want to complete my profile with personal data and default training preferences so that future training plans can be tailored to my needs.
 - Acceptance Criteria:
-  - The profile form contains mandatory and optional fields according to the requirements.
+  - The profile form contains fields for personal data (age, sex, height, weight, experience, limitations).
+  - The profile includes default generation preferences (goals, equipment, frequency, session length).
   - The user can save or edit the entered data.
   - Profile data is validated for correctness and value range.
 
 ### US-004
 - Title: Generating a Training Plan
-- Description: As a user, I want to generate a training plan based on the completed profile to obtain a personalized exercise plan.
-- Acceptance Criteria:
-  - The user can choose the number of training days per week (from 1 to 7) and specify the length of training sessions.
-  - After clicking the "Generate Plan" button, the system uses data from the profile, the exercise database, and defined rules to create the plan.
+- Description: As a user, I want to generate a training plan based on the completed profile to obtain a 
+  - User can provide training preferences defaulted from profile data, but can be overriden
+  - After clicking the "Generate Plan" button, the system uses data from the profile, the exercise database, and training rules to create the plan.
   - The generated plan includes a list of exercises assigned to the selected days, along with the recommended number of sets, repetitions, and suggested weights.
+  - The plan is initially created in a "draft" state.
 
 ### US-005
 - Title: Reviewing and Editing the Training Plan
@@ -93,22 +117,23 @@ Technological boundaries (choice of frameworks, development schedule) and the sc
 - Acceptance Criteria:
   - The user can see the detailed training plan after it has been generated.
   - The interface allows editing: adding or removing exercises, changing the number of sets, repetitions, and weights.
-  - After editing, the user can approve the modified plan, which will be saved in the system.
+  - After editing, the user can approve the modified plan, which will be saved in the system as "accepted."
+  - The user can also reject the plan, which will mark it as "rejected" and remove it from active plans.
 
 ### US-006
 - Title: Managing Saved Training Plans
-- Description: As a user, I want to be able to view and edit saved training plans so that I have access to all my training proposals in one place.
+- Description: As a user, I want to be able to view and edit my saved training plans.
 - Acceptance Criteria:
-  - The user sees a list of saved training plans assigned to their account.
-  - Each saved plan can be opened, viewed, and edited.
-  - No versioning mechanism – each edit overwrites the previous version of the plan.
+  - The user sees a list of their training plans (up to 10 plans).
+  - Each plan can be opened, viewed, and edited.
+  - Rejected plans are not shown in the plan list.
+  - No versioning mechanism – each edit overwrites the previous version.
 
 ### US-007
 - Title: Information on the Need for Medical Consultation
 - Description: As a user, I want to be informed about the need for a medical consultation in case of health doubts so that I can make informed decisions about training intensity.
 - Acceptance Criteria:
-  - During registration and while completing the profile, a warning message appears reminding about the need for a medical consultation in case of doubts.
-  - The message is visible and cannot be ignored during the first use of the plan generation function.
+  - When viewing generated plan there is a message visible.
 
 ## 6. Success Metrics
 1. Generating and Accepting Plans
