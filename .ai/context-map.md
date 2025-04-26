@@ -99,10 +99,6 @@ graph TD
 
 Trainee -->|fills| Profile
 Trainee -->|requests plan| PlanGeneration
-PlanGeneration -->|fetches defaults| Profile
-PlanGeneration -->|fetches data| ExerciseLibrary
-PlanGeneration -->|fetches rules| TrainingRules
-PlanGeneration -->|creates plan| PlanManagement
 
 subgraph "Profile Context"
   Profile
@@ -120,6 +116,21 @@ subgraph "Plan Management Context"
   PlanManagement
 end
 
+subgraph "External LLM Service"
+  LLM[Large Language Model]
+end
+
 subgraph "Plan Generation Context"
-  PlanGeneration
+  PlanGeneration[API Gateway]
+  DataAggregator[Data Aggregator]
+  Generator[Plan Generator]
+  
+  PlanGeneration --> DataAggregator
+  DataAggregator --> Generator
+  DataAggregator -->|fetches defaults| Profile
+  DataAggregator -->|fetches data| ExerciseLibrary
+  DataAggregator -->|fetches rules| TrainingRules
+  Generator -->|creates plan| PlanManagement
+  Generator -->|requests plan generation| LLM
+  LLM -->|returns generated plan| Generator
 end
