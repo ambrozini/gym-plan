@@ -45,7 +45,7 @@ Users, especially beginners and intermediates, face difficulties in creating tra
 
 6. Modification and Acceptance of the Plan
    - The user can edit the generated plan – adding or removing exercises, changing the number of sets, repetitions, and weights.
-   - Ability to add personal notes and save the final version of the plan.
+   - Ability to add personal notes at different levels (day, slot, exercise) and save the final version of the plan.
    - The accepted plan is assigned to the account and is available for later editing.
    - The system tracks plan acceptance status for auto-generated plans.
 
@@ -59,6 +59,44 @@ Users, especially beginners and intermediates, face difficulties in creating tra
    - A reminder message for the user about the need to consult a doctor in case of health doubts.
    - Simple data validation (minimum and maximum values) on both the front-end and back-end.
    - Testing mechanisms – both manual and automated.
+
+## 3.1 Training Plan Data Structure
+The structure of a training plan follows a hierarchical organization to ensure flexibility and extensibility.
+
+1. **Training Plan**
+   - Contains a collection of training days.
+   - `trainingDays: TrainingDay[]`
+
+2. **Training Day**
+   - Represents a single workout session.
+   - `notes?: string` — Optional general notes for the day (e.g., "Focus on technique", "Lower body day").
+   - `slots: TrainingSlot[]` — A list of training slots to be performed during the day.
+
+3. **Training Slot**
+   - Represents a group of exercises performed sequentially.
+   - `exercises: ExerciseEntry[]` — One or more exercises performed in sequence.
+   - `slotNotes?: string` — Optional notes for the entire slot (e.g., "Superset - minimal rest between exercises").
+
+4. **Exercise Entry**
+   - Represents a specific exercise with its parameters.
+   - `exerciseId: string` — Reference to the exercise in the library.
+   - `sets: number` — Number of sets to perform.
+   - `repetitions: number` — Number of repetitions per set.
+   - `tempo: string` — Execution tempo in standard format (e.g., "3010" = 3s eccentric, 0s pause, 1s concentric, 0s pause).
+   - `restSeconds: number` — Rest time after completing all sets of this exercise (in seconds).
+   - `exerciseNotes?: string` — Optional specific notes for this exercise.
+
+Key Design Principles:
+- No distinction between types of slots (e.g., supersets, circuits) - instead, a slot with multiple exercises is treated as exercises to be performed sequentially.
+- Notes can be added at three levels: day, slot, and individual exercise.
+- The structure is intentionally simple for MVP but allows for future extensions without breaking changes.
+
+Usage Patterns:
+- A slot with one exercise = standard isolated exercise.
+- A slot with two exercises = typically a superset.
+- A slot with three or more exercises = typically a circuit.
+
+This data structure ensures consistency and predictability while supporting both simple and complex training plans.
 
 ## 4. Product Boundaries
 In the MVP, the following functionalities are excluded:
@@ -105,10 +143,11 @@ Technological boundaries (choice of frameworks, development schedule) and the sc
 
 ### US-004
 - Title: Generating a Training Plan
-- Description: As a user, I want to generate a training plan based on the completed profile to obtain a 
+- Description: As a user, I want to generate a training plan based on the completed profile to obtain a personalized workout routine.
+- Acceptance Criteria:
   - User can provide training preferences defaulted from profile data, but can be overriden
   - After clicking the "Generate Plan" button, the system uses data from the profile, the exercise database, and training rules to create the plan.
-  - The generated plan includes a list of exercises assigned to the selected days, along with the recommended number of sets, repetitions, and suggested weights.
+  - The generated plan includes training days with slots containing exercises, along with the recommended number of sets, repetitions, tempo, rest times, and optional notes.
   - The plan is initially created in a "draft" state.
 
 ### US-005
@@ -116,7 +155,8 @@ Technological boundaries (choice of frameworks, development schedule) and the sc
 - Description: As a user, I want to be able to review the generated training plan and make changes to tailor it to my individual preferences.
 - Acceptance Criteria:
   - The user can see the detailed training plan after it has been generated.
-  - The interface allows editing: adding or removing exercises, changing the number of sets, repetitions, and weights.
+  - The interface allows editing: adding or removing exercises, changing the number of sets, repetitions, tempo, and rest times.
+  - The user can add or edit notes at the day, slot, or exercise level.
   - After editing, the user can approve the modified plan, which will be saved in the system as "accepted."
   - The user can also reject the plan, which will mark it as "rejected" and remove it from active plans.
 
