@@ -1,6 +1,6 @@
-## Database Schema - GymPlan MVP
+## Plan Management Context - Database Schema
 
-### 1. List of tables with their columns, data types, and constraints
+### Table Structure
 
 #### `plan_management.plans`
 | Column          | Data Type     | Constraints                                                                                         |
@@ -13,7 +13,9 @@
 | `updated_at`    | TIMESTAMPTZ    | NOT NULL, DEFAULT `now()`                                                                           |
 | `deleted_at`    | TIMESTAMPTZ    | NULLABLE                                                                                            |
 
-**Trigger to set timestamps**
+### Triggers
+
+**Timestamp Management**
 ```sql
 CREATE FUNCTION plan_management.set_timestamp() RETURNS trigger AS $$
 BEGIN
@@ -34,10 +36,7 @@ CREATE TRIGGER trg_set_timestamp
   EXECUTE FUNCTION plan_management.set_timestamp();
 ```
 
-### 2. Relationships between tables
-
-
-### 3. Indexes
+### Indexes
 ```sql
 CREATE INDEX idx_plans_owner_active
   ON plan_management.plans(owner_id)
@@ -47,7 +46,7 @@ CREATE INDEX idx_plans_owner_updated_at
   ON plan_management.plans(owner_id, updated_at DESC);
 ```
 
-### 4. PostgreSQL Row-Level Security (RLS) policies
+### Row Level Security (RLS) Policies
 ```sql
 ALTER TABLE plan_management.plans ENABLE ROW LEVEL SECURITY;
 
@@ -77,10 +76,9 @@ CREATE POLICY deny_delete
   USING (false);
 ```
 
-### 5. Additional notes and explanations
+### Additional Notes
 - **Soft-delete**: deleting a plan is handled by setting `deleted_at`; no physical DELETE operation.
 - **No status column**: lifecycle (draft/accepted/rejected) is tracked in the PlanGeneration context; only active/deleted status is maintained in `plans`.
 - **Limit of active plans (<= 10), same with training days object (limit of exercises, slots)**: enforced at the application layer.
 - **Full JSON structure validation** is handled by the application using a `training-plan.json` schema (draft-2020-12).
-- **Schema-per-context** according to ADR-0001: the table exists in the `plan_management` schema, without foreign keys to other contexts. Columns owner_id is a indirect reference to auth.users(id) as we cannot have foreign keys between different schemas
-
+- **Schema-per-context** according to ADR-0001: the table exists in the `plan_management` schema, without foreign keys to other contexts. Columns owner_id is a indirect reference to auth.users(id) as we cannot have foreign keys between different schemas 
