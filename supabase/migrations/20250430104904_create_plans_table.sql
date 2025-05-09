@@ -1,7 +1,7 @@
 -- Migration: create_plans_table
 -- Description: Creates the initial plan_management schema and plans table with RLS policies
--- Created at: 2025-04-30 10:49:04 UTC
 -- Author: System
+-- Date: 2024-04-30
 
 -- Create the plan_management schema
 create schema if not exists plan_management;
