@@ -4,6 +4,8 @@
 
 This document captures key decisions and open questions from our domain modeling workshop for the MVP of **GymPlan** – a training plan generator for strength trainees. The MVP focuses on allowing users to create personalized training plans based on profile data, predefined rules, and a static exercise library. The system is designed with modular, bounded contexts and lightweight integrations to simplify early development and support future growth. Particular care has been taken to separate concerns like plan lifecycle, profile management, and training logic into independent services.
 
+> **Updated May 2025**: As per ADR-0002, the Training Rules context has been temporarily embedded within Plan Generation for the initial MVP, to simplify development and accelerate time-to-market.
+
 ---
 
 ## ✅ Decisions
@@ -35,21 +37,22 @@ This document captures key decisions and open questions from our domain modeling
 - Metadata includes muscles, equipment, etc.
 - **Open-Host Service**, queried synchronously.
 - Static contents for MVP.
-- No integration with Training Rules in MVP.
 
-### Training Rules Context
-- Separate bounded context.
-- Static and generic rule logic for now.
-- No link to specific exercises or categories yet.
+### Training Rules Logic (Embedded in Plan Generation)
+- Basic training rule logic embedded directly in Plan Generation for MVP.
+- Will be extracted to a separate context in future iterations.
+- Static and generic rule implementation for now.
+- Designed with clean interfaces to facilitate future extraction.
 
 ### Plan Generation
 - Separate bounded context.
 - Accepts **PlanRequested** trigger.
-- Synchronously calls: Profile, Exercise Library, Training Rules.
+- Synchronously calls: Profile, Exercise Library.
+- Incorporates embedded training rule logic.
 - Aggregates:
   - Static profile data
   - Default preferences (can be overridden)
-  - Training Rules and Exercise Library
+  - Exercise Library
 - Constructs a **`PlanRequest`** structure:
   - Full specification for plan generation
   - Can override defaults from profile
@@ -87,7 +90,7 @@ This document captures key decisions and open questions from our domain modeling
 - When and how to introduce **Coach** roles and permissions?
 - Future **versioning and history strategy** once tracking is added.
 - What other services will consume the **Exercise Library**?
-- How should **Training Rules** relate to exercise categories in future?
+- When to extract the embedded training rules into a separate bounded context?
 - Final **CreateDraft** contract between Plan Generation and Plan Management.
 
 ---
@@ -108,10 +111,6 @@ subgraph "Exercise Library Context"
   ExerciseLibrary
 end
 
-subgraph "Training Rules Context"
-  TrainingRules
-end
-
 subgraph "Plan Management Context"
   PlanManagement
 end
@@ -124,12 +123,13 @@ subgraph "Plan Generation Context"
   PlanGeneration[API Gateway]
   DataAggregator[Data Aggregator]
   Generator[Plan Generator]
+  TrainingRulesLogic[Embedded Training Rules]
   
   PlanGeneration --> DataAggregator
   DataAggregator --> Generator
   DataAggregator -->|fetches defaults| Profile
   DataAggregator -->|fetches data| ExerciseLibrary
-  DataAggregator -->|fetches rules| TrainingRules
+  Generator -->|applies rules| TrainingRulesLogic
   Generator -->|creates plan| PlanManagement
   Generator -->|requests plan generation| LLM
   LLM -->|returns generated plan| Generator
