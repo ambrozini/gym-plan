@@ -107,8 +107,8 @@ subgraph "Profile Context"
   Profile
 end
 
-subgraph "Exercise Library Context"
-  ExerciseLibrary
+subgraph "Minimalist Exercise Library"
+  MinimalistExerciseLibrary[Lightweight PostgreSQL Domain for exercises]
 end
 
 subgraph "Plan Management Context"
@@ -120,16 +120,14 @@ subgraph "External LLM Service"
 end
 
 subgraph "Plan Generation Context"
-  PlanGeneration[API Gateway]
+  PlanGeneration[API Gateway with embedded training rules]
   DataAggregator[Data Aggregator]
   Generator[Plan Generator]
-  TrainingRulesLogic[Embedded Training Rules]
   
   PlanGeneration --> DataAggregator
   DataAggregator --> Generator
   DataAggregator -->|fetches defaults| Profile
-  DataAggregator -->|fetches data| ExerciseLibrary
-  Generator -->|applies rules| TrainingRulesLogic
+  DataAggregator -->|fetches data via facade| MinimalistExerciseLibrary
   Generator -->|creates plan| PlanManagement
   Generator -->|requests plan generation| LLM
   LLM -->|returns generated plan| Generator

@@ -25,16 +25,16 @@ Users, especially beginners and intermediates, face difficulties in creating tra
    - No profile snapshots stored in MVP.
 
 3. Exercise Library
-   - A predefined, static catalog of exercises covering several dozen of the most popular exercises.
-   - Each exercise includes a name, a brief description of the execution technique, metadata (muscle groups, required equipment, health limitations), and possible tips.
-   - Static contents - no possibility for users or an admin panel to edit it in the MVP.
-   - No direct linkage to training rules yet.
+   - A predefined, lightweight exercise repository implemented as a minimalist domain in PostgreSQL.
+   - Consists of a dedicated `exercise_library` schema containing a table of exercises with columns: `id`, `name`, `slug`.
+   - Each exercise record is uniquely identified by `id` and maintains a canonical `slug` for consistency.
+   - The Plan Generation module accesses the library, ensuring deduplication and data consistency.
+   - Training plans store only the `exerciseId` foreign key, rather than duplicating exercise details in their JSON payload.
 
-4. Training Rules
-   - A set of predefined rules for generating training plans.
-   - Rules include guidelines for sets, repetitions, rest periods, and exercise selection.
-   - Static and generic rule logic for the MVP.
-   - No direct linkage to specific exercises or exercise categories yet.
+4. Embedded Training Rules
+   - The training rules logic is integrated within the Plan Generation module.
+   - Provides guidelines for sets, repetitions, rest periods, and exercise selection using a static and generic implementation.
+   - This embedded approach simplifies the MVP and is designed for future extraction into a dedicated context.
 
 5. Generating a Training Plan
    - A form generating a plan based on profile data and generation parameters
