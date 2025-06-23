@@ -48,7 +48,7 @@ This approach aligns with the modular monolith philosophy: fast MVP delivery wit
 ### a) Separate Database per Context
 
 * **Pros:** Perfect isolation, independent scaling.
-* **Cons:** Higher operational costs (each Supabase project = separate cluster), complex deployments, additional Auth/Edge function integration required.
+* **Cons:** Higher operational costs (each Supabase project = separate cluster), complex deployments, additional auth integration required.
 
 ### b) Single Schema (Public)
 
